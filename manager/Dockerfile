@@ -1,6 +1,6 @@
 FROM python:3.11-alpine
 
-RUN apk --no-cache add docker git openssl
+RUN apk --no-cache add docker git grpc
 
 RUN pip install uvicorn
 RUN pip install git+https://github.com/rizerphe/gamebattle-backend.git

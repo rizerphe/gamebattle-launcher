@@ -1,4 +1,4 @@
-name: Build and push
+name: Build and push manager
 
 on:
   push:
@@ -28,6 +28,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: manager
           push: true
           tags: rizerphe/gamebattle-docker-manager:latest

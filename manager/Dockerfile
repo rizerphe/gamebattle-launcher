@@ -6,13 +6,9 @@ RUN pip install uvicorn
 RUN pip install git+https://github.com/rizerphe/gamebattle-backend.git
 
 WORKDIR /app
-COPY launcher/launch.py /app/launch.py
-COPY launcher/requirements.txt /app/requirements.txt
-COPY launcher/gamebattle /app/gamebattle
+COPY gamebattle /app/gamebattle
 
 ENV GAMES_PATH=/app/gamebattle
-ENV REQUIREMENTS_PATH=/app/requirements.txt
-ENV LAUNCHER_PATH=/app/launch.py
 ENV NETWORK=gamebattle
 
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json

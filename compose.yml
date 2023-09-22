@@ -5,9 +5,9 @@ services:
     privileged: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${VOLUME_PATH}:/app/credentials.json:ro
+      - ${VOLUME_PATH:-/credentials.json}:/app/credentials.json:ro
     ports:
-      - 8000:8000
+      - 5000:8000
     networks:
       - gamebattle
 

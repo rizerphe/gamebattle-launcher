@@ -1,3 +1,6 @@
 [submodule "gamebattle"]
 	path = manager/gamebattle
 	url = git@github.com:rizerphe/gamebattle.git
+[submodule "manager/gamebattle-backend"]
+	path = manager/gamebattle-backend
+	url = git@github.com:rizerphe/gamebattle-backend.git

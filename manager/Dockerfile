@@ -1,7 +1,6 @@
-FROM python:3.11-alpine
-RUN pip install grpcio
+FROM python:3.11-slim
 
-RUN apk --no-cache add docker git
+RUN apt-get update && apt-get install -y git docker.io && apt-get clean
 
 RUN pip install uvicorn
 RUN pip install git+https://github.com/rizerphe/gamebattle-backend.git

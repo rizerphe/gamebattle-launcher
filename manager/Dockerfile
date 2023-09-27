@@ -6,11 +6,9 @@ RUN pip install uvicorn
 RUN pip install git+https://github.com/rizerphe/gamebattle-backend.git
 
 WORKDIR /app
-COPY gamebattle /app/gamebattle
 
 ENV GAMES_PATH=/app/gamebattle
 ENV NETWORK=gamebattle
-
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
 
 EXPOSE 8000

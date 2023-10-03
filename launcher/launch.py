@@ -5,8 +5,7 @@ import pty
 from select import POLLIN, poll
 import subprocess
 import sys
-from typing import Literal
-from typing_extensions import TypedDict
+from typing import Literal, TypedDict
 
 from websocket_server import WebsocketServer
 

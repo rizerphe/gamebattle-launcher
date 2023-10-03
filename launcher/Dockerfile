@@ -8,4 +8,4 @@ RUN rm requirements.txt
 COPY launch.py .
 EXPOSE 8080
 
-CMD ["uvicorn", "launch:launch", "--host", "0.0.0.0", "--port", "8080", "--factory"]
+CMD ["python", "launch.py"]

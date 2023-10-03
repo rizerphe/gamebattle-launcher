@@ -1,16 +1,14 @@
 """A simple FastAPI server that launches a subprocess and allows you to
 interact with it RESTfully."""
-import asyncio
 import os
 import pty
 from select import POLLIN, poll
 import subprocess
 import sys
-from threading import Lock
 from typing import Literal
 from typing_extensions import TypedDict
 
-import fastapi
+from websocket_server import WebsocketServer
 
 
 class SubprocessStatus(TypedDict):
@@ -38,20 +36,18 @@ class Launcher:
         """
         self.accumulated_output = ""
         self.current_output = ""
+        self.server: WebsocketServer | None = None
         self.launch(command)
-        self.active_websockets: set[fastapi.WebSocket] = set()
-        self.lock = Lock()
         self.done = False
 
-    def __call__(self) -> fastapi.FastAPI:
+    def __call__(self) -> None:
         """Return the FastAPI app."""
-        asyncio.create_task(self._ws_stdout(self.fd))
-
-        app = fastapi.FastAPI()
-        app.post("/stdin")(self.stdin)
-        app.get("/output")(self.output)
-        app.websocket("/ws")(self.ws)
-        return app
+        server = WebsocketServer(port=8080)
+        server.set_fn_new_client(self.new_client)
+        server.set_fn_message_received(self.message_received)
+        server.run_forever(threaded=True)
+        self.server = server
+        self._handle_stdout(self.fd)
 
     def launch(self, command: list[str]) -> None:
         """Launch the subprocess.
@@ -64,48 +60,20 @@ class Launcher:
             subprocess.call(command)
             sys.exit(0)
 
-    def stdin(self, text: str = fastapi.Body(...)) -> StatusMessage:
-        """Write to stdin.
-
-        Args:
-            text (str, optional): The text to write to stdin.
-
-        Returns:
-            StatusMessage: A status message.
-        """
-        os.write(self.fd, text.encode())
-        return {"status": "ok"}
-
-    def output(self) -> SubprocessStatus:
-        """Read from stdout import"""
-        with self.lock:
-            out = self.current_output
-            self.current_output = ""
-            return {
-                "output": out,
-                "done": self.done,
-                "whole": self.accumulated_output,
-            }
-
-    async def ws(self, websocket: fastapi.WebSocket) -> None:
+    def new_client(self, client, server: WebsocketServer) -> None:
         """Websocket handler."""
-        await websocket.accept()
-        self.active_websockets.add(websocket)
-        await websocket.send_text(self.accumulated_output)
-        await websocket.send_text("")
+        server.send_message(client, self.accumulated_output)
 
-        await self._ws_stdin(websocket)
+    def send_message(self, message: str) -> None:
+        """Send a message to all clients."""
+        if self.server is not None:
+            self.server.send_message_to_all(message)
 
-    async def _ws_stdin(self, websocket: fastapi.WebSocket) -> None:
-        """Write to stdin.
+    def message_received(self, client, server: WebsocketServer, message: str) -> None:
+        """Websocket handler."""
+        os.write(self.fd, message.encode())
 
-        Args:
-            websocket (fastapi.WebSocket): The websocket to read from.
-        """
-        async for text in websocket.iter_text():
-            os.write(self.fd, text.encode())
-
-    async def _ws_stdout(self, fd: int) -> None:
+    def _handle_stdout(self, fd: int) -> None:
         """Read from stdout."""
         try:
             poller = poll()
@@ -113,27 +81,19 @@ class Launcher:
             while True:
                 if poller.poll(0):
                     out = os.read(fd, 1024)
-                    with self.lock:
-                        self.current_output += out.decode()
-                        self.accumulated_output += out.decode()
-                    for websocket in set(self.active_websockets):
-                        try:
-                            await websocket.send_text(out.decode())
-                        except RuntimeError:
-                            self.active_websockets.remove(websocket)
-                else:
-                    await asyncio.sleep(0.1)
+                    self.current_output += out.decode()
+                    self.accumulated_output += out.decode()
+                    self.send_message(out.decode())
         except OSError:
             self.done = True
-            await asyncio.gather(
-                *[websocket.close() for websocket in self.active_websockets]
-            )
 
 
-def launch() -> fastapi.FastAPI:
-    """Launch a subprocess and return a FastAPI app that allows you
-    to interact with it RESTfully."""
+def main():
     command = os.environ.get("COMMAND")
     if command is None:
         raise ValueError("Environment variable COMMAND not set.")
-    return Launcher(command.split(" "))()
+    Launcher(command.split(" "))()
+
+
+if __name__ == "__main__":
+    main()

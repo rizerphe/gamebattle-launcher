@@ -3,25 +3,8 @@ interact with it RESTfully."""
 import os
 import pty
 from select import POLLIN, poll
-import subprocess
-import sys
-from typing import Literal, TypedDict
 
 from websocket_server import WebsocketServer
-
-
-class SubprocessStatus(TypedDict):
-    """The status of the subprocess."""
-
-    output: str
-    done: bool
-    whole: str
-
-
-class StatusMessage(TypedDict):
-    """A status message."""
-
-    status: Literal["ok", "error"]
 
 
 class Launcher:
@@ -56,6 +39,9 @@ class Launcher:
         """
         self.pid, self.fd = pty.fork()
         if self.pid == 0:
+            import subprocess
+            import sys
+
             subprocess.call(command)
             sys.exit(0)
 
@@ -74,6 +60,7 @@ class Launcher:
 
     def _handle_stdout(self, fd: int) -> None:
         """Read from stdout."""
+
         try:
             poller = poll()
             poller.register(fd, POLLIN)

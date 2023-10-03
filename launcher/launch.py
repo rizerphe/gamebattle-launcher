@@ -79,7 +79,7 @@ class Launcher:
             poller = poll()
             poller.register(fd, POLLIN)
             while True:
-                if poller.poll(0):
+                if poller.poll(10):
                     out = os.read(fd, 1024)
                     self.current_output += out.decode()
                     self.accumulated_output += out.decode()

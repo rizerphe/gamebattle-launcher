@@ -42,7 +42,7 @@ class Launcher:
 
     def __call__(self) -> None:
         """Return the FastAPI app."""
-        server = WebsocketServer(port=8080)
+        server = WebsocketServer(port=8080, host="0.0.0.0")
         server.set_fn_new_client(self.new_client)
         server.set_fn_message_received(self.message_received)
         server.run_forever(threaded=True)

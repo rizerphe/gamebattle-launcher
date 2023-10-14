@@ -19,6 +19,7 @@ class Launcher:
             command (list[str]): The child command to run.
         """
         self.accumulated_output = b""
+        self.unsent_bytes = b""
         self.server: WebsocketServer | None = None
         self.launch(command)
         self.done = False
@@ -50,7 +51,7 @@ class Launcher:
         """Websocket handler."""
         server.send_message(client, self.accumulated_output)
 
-    def send_message(self, message: bytes) -> None:
+    def send_message(self, message: str) -> None:
         """Send a message to all clients."""
         if self.server is not None:
             self.server.send_message_to_all(message)
@@ -69,7 +70,16 @@ class Launcher:
                 if poller.poll(10):
                     out = os.read(fd, 1024)
                     self.accumulated_output += out
-                    self.send_message(out)
+                    for i in range(0, len(out)):
+                        try:
+                            result = (
+                                self.unsent_bytes + (out[:-i] if i else out)
+                            ).decode()
+                            self.unsent_bytes = out[-i:] if i else b""
+                            self.send_message(result)
+                            break
+                        except UnicodeDecodeError:
+                            pass
         except OSError:
             self.done = True
         self.graceful_shutdown()

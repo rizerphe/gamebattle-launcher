@@ -1,5 +1,5 @@
 """A simple FastAPI server that launches a subprocess and allows you to
-interact with it RESTfully."""
+interact with it through websockets."""
 import os
 import pty
 from select import POLLIN, poll
@@ -9,7 +9,8 @@ from websocket_server import WebsocketServer
 
 
 class Launcher:
-    """Launches a subprocess and allows you to interact with it RESTfully."""
+    """Launches a subprocess and allows you to interact with it through
+    websockets."""
 
     def __init__(self, command: list[str]) -> None:
         """Initializes the Launcher.
@@ -24,7 +25,7 @@ class Launcher:
         self.done = False
 
     def __call__(self) -> None:
-        """Return the FastAPI app."""
+        """Initialize the WebsocketServer."""
         server = WebsocketServer(port=8080, host="0.0.0.0")
         server.set_fn_new_client(self.new_client)
         server.set_fn_message_received(self.message_received)

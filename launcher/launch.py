@@ -71,7 +71,10 @@ class Launcher:
                     out = os.read(fd, 1024)
                     self.current_output += out.decode()
                     self.accumulated_output += out.decode()
-                    self.send_message(out.decode())
+                    received = out.decode()
+                    # In 128 character chunks:
+                    for i in range(0, len(received), 128):
+                        self.send_message(received[i : i + 128])
         except OSError:
             self.done = True
         self.graceful_shutdown()

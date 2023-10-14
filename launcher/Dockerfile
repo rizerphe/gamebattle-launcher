@@ -8,4 +8,7 @@ RUN rm requirements.txt
 COPY launch.py .
 EXPOSE 8080
 
-CMD ["python", "launch.py"]
+RUN mkdir game
+WORKDIR /usr/src/app/game
+
+CMD ["python", "../launch.py"]

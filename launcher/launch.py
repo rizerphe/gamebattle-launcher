@@ -69,9 +69,7 @@ class Launcher:
                 if poller.poll(10):
                     out = os.read(fd, 1024)
                     self.accumulated_output += out
-                    # In 128 character chunks:
-                    for i in range(0, len(out), 128):
-                        self.send_message(out[i : i + 128])
+                    self.send_message(out)
         except OSError:
             self.done = True
         self.graceful_shutdown()

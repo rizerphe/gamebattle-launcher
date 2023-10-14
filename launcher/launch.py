@@ -18,8 +18,7 @@ class Launcher:
         Args:
             command (list[str]): The child command to run.
         """
-        self.accumulated_output = ""
-        self.current_output = ""
+        self.accumulated_output = b""
         self.server: WebsocketServer | None = None
         self.launch(command)
         self.done = False
@@ -51,7 +50,7 @@ class Launcher:
         """Websocket handler."""
         server.send_message(client, self.accumulated_output)
 
-    def send_message(self, message: str) -> None:
+    def send_message(self, message: bytes) -> None:
         """Send a message to all clients."""
         if self.server is not None:
             self.server.send_message_to_all(message)
@@ -69,12 +68,10 @@ class Launcher:
             while True:
                 if poller.poll(10):
                     out = os.read(fd, 1024)
-                    self.current_output += out.decode()
-                    self.accumulated_output += out.decode()
-                    received = out.decode()
+                    self.accumulated_output += out
                     # In 128 character chunks:
-                    for i in range(0, len(received), 128):
-                        self.send_message(received[i : i + 128])
+                    for i in range(0, len(out), 128):
+                        self.send_message(out[i : i + 128])
         except OSError:
             self.done = True
         self.graceful_shutdown()

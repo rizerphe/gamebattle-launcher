@@ -3,7 +3,6 @@ interact with it through websockets."""
 import os
 import pty
 from select import POLLIN, poll
-import time
 
 from websocket_server import WebsocketServer
 
@@ -82,18 +81,6 @@ class Launcher:
                             pass
         except OSError:
             self.done = True
-        self.graceful_shutdown()
-
-    def graceful_shutdown(self, time_to_wait: int = 10) -> None:
-        """Gracefully shutdown the server.
-
-        Args:
-            time_to_wait (int): Time to wait before shutting down. Defaults to 10.
-        """
-        while time_to_wait > 0:
-            self.send_message(f"\rShutting down in {time_to_wait} seconds.")
-            time.sleep(1)
-            time_to_wait -= 1
 
 
 def main():

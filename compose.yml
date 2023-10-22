@@ -19,6 +19,8 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       ENABLE_COMPETITION: ${ENABLE_COMPETITION}
       REPORT_WEBHOOK: ${REPORT_WEBHOOK}
+      ADMIN_EMAILS: ${ADMIN_EMAILS}
+    restart: always
   redis:
     image: redis:alpine
     networks:
@@ -26,6 +28,7 @@ services:
     command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
     volumes:
       - cache:/data
+    restart: always
 
 volumes:
   cache:

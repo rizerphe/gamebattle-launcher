@@ -11,6 +11,25 @@ services:
       - 5000:8000
     networks:
       - gamebattle
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      ENABLE_COMPETITION: ${ENABLE_COMPETITION}
+      REPORT_WEBHOOK: ${REPORT_WEBHOOK}
+  redis:
+    image: redis:alpine
+    networks:
+      - gamebattle
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - cache:/data
+
+volumes:
+  cache:
+    driver: local
 
 networks:
   gamebattle:

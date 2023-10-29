@@ -7,10 +7,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${CREDENTIALS_PATH:-/credentials.json}:/app/credentials.json:ro
       - ${GAMES_PATH:-/gamebattle}:/app/gamebattle
+      - /tmp:/tmp # TODO: find a better way to handle this
     ports:
       - 5000:8000
-    networks:
-      - gamebattle
     depends_on:
       - redis
     environment:
@@ -23,18 +22,11 @@ services:
     restart: always
   redis:
     image: redis:alpine
-    networks:
-      - gamebattle
     command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
     volumes:
-      - cache:/data
+      - redis:/data
     restart: always
 
 volumes:
-  cache:
+  redis:
     driver: local
-
-networks:
-  gamebattle:
-    driver: bridge
-    name: gamebattle
